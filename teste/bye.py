@@ -1,0 +1,4 @@
+nome = "tchau"
+
+
+print(nome)
