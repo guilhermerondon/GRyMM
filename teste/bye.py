@@ -1,4 +1,0 @@
-nome = "tchau"
-
-
-print(nome)
