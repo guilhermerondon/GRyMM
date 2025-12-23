@@ -1,7 +1,8 @@
 from enum import IntEnum
 
-from aluno.models import Aluno
 from django.utils.translation import gettext_lazy as _
+
+from apps.aluno.models import Aluno
 
 
 class NivelAluno(IntEnum):
