@@ -21,3 +21,6 @@ exclude = [
   "site-packages",
   "migrations",
 ]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
