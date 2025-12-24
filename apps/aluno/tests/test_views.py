@@ -40,4 +40,6 @@ class TestAlunoViewSet:
 
         assert response.status_code == 201
         assert Aluno.objects.count() == 1
-        assert response.data["nivel"] == "Intermediário"
+
+        assert response.data["data"]["nivel"] == "Intermediário"
+        assert response.data["message"] == "Aluno criado com sucesso"
