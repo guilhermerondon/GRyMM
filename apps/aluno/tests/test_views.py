@@ -43,3 +43,53 @@ class TestAlunoViewSet:
 
         assert response.data["data"]["nivel"] == "Intermediário"
         assert response.data["message"] == "Aluno criado com sucesso"
+
+    def test_patch_aluno_atualiza_apenas_um_campo(self):
+        aluno = Aluno.objects.create(
+            nome="Aluno Mitsuo",
+            idade=24,
+            peso=70,
+            tempo_pratica_meses=3,
+        )
+
+        payload = {"peso": 75}
+
+        response = self.client.patch(f"/api/alunos/{aluno.id}/", payload, format="json")
+
+        assert response.status_code == 200
+        assert response.data["data"]["peso"] == "75.00"
+        assert response.data["data"]["nome"] == "Aluno Mitsuo"
+
+    def test_put_aluno_atualiza_todos_os_campos(self):
+        aluno = Aluno.objects.create(
+            nome="Aluno Pierre", idade=20, peso=94, tempo_pratica_meses=27
+        )
+
+        payload = {
+            "nome": "Aluno Charles",
+            "idade": 21,
+            "peso": 98,
+            "tempo_pratica_meses": 28,
+        }
+
+        response = self.client.put(
+            f"/api/alunos/{aluno.id}/",
+            payload,
+            format="json",
+        )
+
+        assert response.status_code == 200
+        assert response.data["data"]["nome"] == "Aluno Charles"
+        assert response.data["data"]["nivel"] == "Experiente"
+
+    def test_delete_aluno(self):
+        aluno = Aluno.objects.create(
+            nome="Aluno Lunardi", idade=24, peso=100, tempo_pratica_meses=1
+        )
+
+        response = self.client.delete(
+            f"/api/alunos/{aluno.id}/",
+        )
+
+        assert response.status_code == 204
+        assert Aluno.objects.count() == 0
