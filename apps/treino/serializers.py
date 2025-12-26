@@ -1,0 +1,39 @@
+from rest_framework import serializers
+from .models import Treino, TreinoExercicio
+
+class TreinoCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Treino
+        fields = [
+            "aluno",
+            "nivel",
+            "ativo",
+        ]
+
+class TreinoExercicioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TreinoExercicio
+        fields = [
+            "dia",
+            "exercicio_id_externo",
+            "nome_exercicio",
+            "grupo_muscular",
+            "categoria",
+        ]
+
+
+class TreinoSerializer(serializers.ModelSerializer):
+    exercicios = TreinoExercicioSerializer(
+        many=True,
+        read_only=True,
+    )
+
+    class Meta:
+        model = Treino
+        fields = [
+            "id",
+            "nivel",
+            "ativo",
+            "criado_em",
+            "exercicios",
+        ]
