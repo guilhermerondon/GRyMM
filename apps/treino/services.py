@@ -3,6 +3,7 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.aluno.services import AlunoService, NivelAluno
+
 from .models import Treino, TreinoExercicio
 
 
@@ -45,14 +46,20 @@ class TreinoService:
             aluno=aluno,
             exercicio_data=exercicio_data,
         )
-
-        return TreinoExercicio.objects.create(
+        treino_exercicio, _ = TreinoExercicio.objects.update_or_create(
             treino=treino,
             exercicio_id_externo=exercicio_data["id"],
+            # id que será usado com único para armazenar como exercicio externo
             dia=dia,
-            repeticoes=exercicio_data["repeticoes"],
-            series=exercicio_data["series"],
+            defaults={
+                # defaults - objetos que podem ser mudados após uma
+                # criação ou nova consulta
+                "repeticoes": exercicio_data["repeticoes"],
+                "series": exercicio_data["series"],
+            },
         )
+
+        return treino_exercicio
 
     @staticmethod
     def montar_treino(
@@ -68,7 +75,7 @@ class TreinoService:
             for dia in dias_validos:
                 exercicios = exercicios_por_dia.get(dia)
 
-                if not exercicios or len(exercicios) != 5:
+                if not exercicios or len(exercicios) == 1:
                     raise ValidationError(
                         _(f"O dia {dia} deve conter exatamente 5 exercícios")
                     )

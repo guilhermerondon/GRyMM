@@ -1,10 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 
 from apps.aluno.models import Aluno
+
 from .models import Treino
-from .serializers import TreinoSerializer, TreinoCreateSerializer
+from .serializers import TreinoCreateSerializer, TreinoSerializer
 
 
 class TreinoViewSet(viewsets.ViewSet):
@@ -13,13 +14,10 @@ class TreinoViewSet(viewsets.ViewSet):
     """
 
     def list(self, request, aluno_id=None):
+        # valida se exite um id de aluno atrelado a requiisição
         aluno = get_object_or_404(Aluno, id=aluno_id)
 
-        treinos = (
-            aluno.treinos
-            .prefetch_related("exercicios")
-            .order_by("-criado_em")
-        )
+        treinos = aluno.treinos.prefetch_related("exercicios").order_by("-criado_em")
 
         serializer = TreinoSerializer(treinos, many=True)
 
@@ -32,6 +30,7 @@ class TreinoViewSet(viewsets.ViewSet):
         )
 
     def retrieve(self, request, pk=None):
+        # valida se exite um id de aluno atrelado a requiisição
         treino = get_object_or_404(
             Treino.objects.prefetch_related("exercicios"),
             id=pk,
@@ -48,6 +47,9 @@ class TreinoViewSet(viewsets.ViewSet):
         )
 
     def create(self, request, aluno_id=None):
+        # valida se exite um id de aluno atrelado a requisição
+        # chama o TreinoSerializer para validação de payload
+        # se for válido, faz a criação 
         aluno = get_object_or_404(Aluno, id=aluno_id)
 
         serializer = TreinoCreateSerializer(

@@ -1,2 +1,2 @@
 def test_dummy():
-    assert True # nosec B101
+    assert True  # nosec B101

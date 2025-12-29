@@ -15,7 +15,7 @@ class Treino(models.Model):
     )
 
     nivel = models.CharField(
-        max_length=10,
+        max_length=14,
         choices=Nivel.choices,
     )
 
@@ -39,6 +39,8 @@ class Treino(models.Model):
 
 
 class TreinoExercicio(models.Model):
+
+    # categorias/escolhas da API externa
     CATEGORIAS_API = [
         ("strength", "Strength"),
         ("cardio", "Cardio"),
@@ -58,6 +60,8 @@ class TreinoExercicio(models.Model):
     exercicio_id_externo = models.CharField(max_length=100)
     nome_exercicio = models.CharField(max_length=255)
     grupo_muscular = models.CharField(max_length=100)
+    repeticoes = models.CharField(max_length=100, default=0)
+    series = models.CharField(max_length=100, default=0)
 
     categoria = models.CharField(
         max_length=20,

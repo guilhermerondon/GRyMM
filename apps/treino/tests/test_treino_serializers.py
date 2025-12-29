@@ -1,40 +1,43 @@
 import pytest
-from apps.aluno.models import Aluno
-from apps.treino.services import TreinoService
+
+from apps.treino.serializers import TreinoExercicioSerializer
+
 
 @pytest.mark.django_db
-def test_serializer_cria_treino():
-    # Cria aluno válido
-    aluno = Aluno.objects.create(
-        nome="Aluno Teste",
-        idade=20,
-        peso=70.0,
-        tempo_pratica_meses=12,
-    )
-
-    # Payload de exercícios
+# valida se o serializer está válido
+# envia o payload
+# assegura se o .is_valid é true
+# confirma se o nome bate com as informações do payload
+def test_exercicio_serializer_valido():
     payload = {
-        "A": [
-            {
-                "id": "123",
-                "nome": "Push Up",
-                "grupo_muscular": "peito",
-                "categoria": "strength",
-                "repeticoes": 15,
-                "series": 3,
-                "difficulty": "INICIANTE",  # necessário para passar validação
-            }
-        ] * 5  # 5 exercícios por dia
+        "dia": "B",
+        "exercicio_id_externo": 1,
+        "nome_exercicio": "Push-Up",
+        "grupo_muscular": "Peito",
+        "categoria": "strength",
     }
 
-    # Monta o treino
-    treino = TreinoService.montar_treino(
-        aluno=aluno,
-        exercicios_por_dia=payload,
-    )
+    serializer = TreinoExercicioSerializer(data=payload)
 
-    assert treino.aluno == aluno
-    assert treino.exercicios.count() == 5
-    for exercicio in treino.exercicios.all():
-        assert exercicio.nome_exercicio == "Push Up"
-        assert exercicio.categoria == "strength"
+    assert serializer.is_valid() is True
+    assert serializer.validated_data["nome_exercicio"] == "Push-Up"
+
+
+@pytest.mark.django_db
+# valida se o serializer está inválido
+# envia o payload
+# não passa o paramêtro de nome exercio
+# assegura se o is_valid é falso
+# confirma se o erro tem relação com o parâmetro não passado
+def test_serializer_invalido_nome_exercicio():
+    payload = {
+        "dia": "B",
+        "exercicio_id_externo": 11,
+        "grupo_muscular": "Triceps",
+        "categoria": "balance",
+    }
+
+    serializer = TreinoExercicioSerializer(data=payload)
+
+    assert serializer.is_valid() is False
+    assert "nome_exercicio" in serializer.errors

@@ -9,54 +9,132 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('aluno', '0001_initial'),
+        ("aluno", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Treino',
+            name="Treino",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nivel', models.CharField(choices=[('INICIANTE', 'Iniciante'), ('MEDIO', 'Médio'), ('AVANCADO', 'Avançado')], max_length=10)),
-                ('ativo', models.BooleanField(default=True)),
-                ('criado_em', models.DateTimeField(auto_now_add=True)),
-                ('atualizado_em', models.DateTimeField(auto_now=True)),
-                ('aluno', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='treinos', to='aluno.aluno')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nivel",
+                    models.CharField(
+                        choices=[
+                            ("INICIANTE", "Iniciante"),
+                            ("MEDIO", "Médio"),
+                            ("AVANCADO", "Avançado"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("ativo", models.BooleanField(default=True)),
+                ("criado_em", models.DateTimeField(auto_now_add=True)),
+                ("atualizado_em", models.DateTimeField(auto_now=True)),
+                (
+                    "aluno",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="treinos",
+                        to="aluno.aluno",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-criado_em'],
+                "ordering": ["-criado_em"],
             },
         ),
         migrations.CreateModel(
-            name='TreinoExercicio',
+            name="TreinoExercicio",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('exercicio_id_externo', models.CharField(max_length=100)),
-                ('nome_exercicio', models.CharField(max_length=255)),
-                ('grupo_muscular', models.CharField(max_length=100)),
-                ('categoria', models.CharField(choices=[('strength', 'Strength'), ('cardio', 'Cardio'), ('mobility', 'Mobility'), ('balance', 'Balance'), ('stretching', 'Stretching'), ('plyometrics', 'Plyometrics'), ('rehabilitation', 'Rehabilitation')], max_length=20)),
-                ('dia', models.CharField(choices=[('A', 'Dia A'), ('B', 'Dia B'), ('C', 'Dia C'), ('D', 'Dia D')], max_length=1)),
-                ('treino', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='exercicios', to='treino.treino')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("exercicio_id_externo", models.CharField(max_length=100)),
+                ("nome_exercicio", models.CharField(max_length=255)),
+                ("grupo_muscular", models.CharField(max_length=100)),
+                (
+                    "categoria",
+                    models.CharField(
+                        choices=[
+                            ("strength", "Strength"),
+                            ("cardio", "Cardio"),
+                            ("mobility", "Mobility"),
+                            ("balance", "Balance"),
+                            ("stretching", "Stretching"),
+                            ("plyometrics", "Plyometrics"),
+                            ("rehabilitation", "Rehabilitation"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "dia",
+                    models.CharField(
+                        choices=[
+                            ("A", "Dia A"),
+                            ("B", "Dia B"),
+                            ("C", "Dia C"),
+                            ("D", "Dia D"),
+                        ],
+                        max_length=1,
+                    ),
+                ),
+                (
+                    "treino",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="exercicios",
+                        to="treino.treino",
+                    ),
+                ),
             ],
         ),
         migrations.AddConstraint(
-            model_name='treino',
-            constraint=models.UniqueConstraint(condition=models.Q(('ativo', True)), fields=('aluno',), name='unique_treino_ativo_por_aluno'),
+            model_name="treino",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("ativo", True)),
+                fields=("aluno",),
+                name="unique_treino_ativo_por_aluno",
+            ),
         ),
         migrations.AddIndex(
-            model_name='treinoexercicio',
-            index=models.Index(fields=['treino', 'dia'], name='treino_trei_treino__dc5e4c_idx'),
+            model_name="treinoexercicio",
+            index=models.Index(
+                fields=["treino", "dia"], name="treino_trei_treino__dc5e4c_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='treinoexercicio',
-            index=models.Index(fields=['categoria'], name='treino_trei_categor_0b9820_idx'),
+            model_name="treinoexercicio",
+            index=models.Index(
+                fields=["categoria"], name="treino_trei_categor_0b9820_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='treinoexercicio',
-            index=models.Index(fields=['grupo_muscular'], name='treino_trei_grupo_m_9b1741_idx'),
+            model_name="treinoexercicio",
+            index=models.Index(
+                fields=["grupo_muscular"], name="treino_trei_grupo_m_9b1741_idx"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='treinoexercicio',
-            constraint=models.UniqueConstraint(fields=('treino', 'dia', 'exercicio_id_externo'), name='unique_exercicio_por_dia_no_treino'),
+            model_name="treinoexercicio",
+            constraint=models.UniqueConstraint(
+                fields=("treino", "dia", "exercicio_id_externo"),
+                name="unique_exercicio_por_dia_no_treino",
+            ),
         ),
     ]
