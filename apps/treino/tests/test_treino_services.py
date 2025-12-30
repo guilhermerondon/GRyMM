@@ -1,7 +1,10 @@
+import pytest
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from apps.aluno.services import NivelAluno
 from apps.treino.models import Treino, TreinoExercicio
+from apps.treino.services import TreinoService
 
 
 @transaction.atomic
@@ -36,3 +39,36 @@ def criar_treino(*, aluno, nivel, exercicios_por_dia=None):
                 )
 
     return treino
+
+
+def test_estrutura_iniciante():
+    # valida a regra de estrutura de treinos atráves dos níveis
+    # assegura que o INCIANTE terá somente o ABC
+    dias = TreinoService.estrutura_por_nivel(NivelAluno.INICIANTE)
+
+    assert dias == ["A", "B", "C"]
+
+
+def test_validar_exercicio_payload_valido():
+    # valida passagem de payload valido
+    exercicio = {
+        "id": 123,
+        "repeticoes": 12,
+        "series": 3,
+    }
+
+    TreinoService._validar_exercicio_payload(exercicio)
+
+
+def test_validar_exercicio_payload_invalido():
+    # barra passagem de payload inválido
+    # falta de paramêtro - series
+    exercicio = {
+        "id": 123,
+        "repeticoes": 12,
+    }
+
+    with pytest.raises(ValidationError) as exc_info:
+        TreinoService._validar_exercicio_payload(exercicio)
+
+        assert "series" in str(exc_info.value)

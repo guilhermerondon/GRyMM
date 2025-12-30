@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # apps do projeto
     "apps.aluno",
     "apps.treino",
+    "apps.exercicios",
 ]
 
 MIDDLEWARE = [

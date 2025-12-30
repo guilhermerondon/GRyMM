@@ -49,7 +49,7 @@ class TreinoViewSet(viewsets.ViewSet):
     def create(self, request, aluno_id=None):
         # valida se exite um id de aluno atrelado a requisição
         # chama o TreinoSerializer para validação de payload
-        # se for válido, faz a criação 
+        # se for válido, faz a criação
         aluno = get_object_or_404(Aluno, id=aluno_id)
 
         serializer = TreinoCreateSerializer(
