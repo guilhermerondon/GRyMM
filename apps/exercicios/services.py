@@ -23,7 +23,7 @@ class ExercicioService:
     def buscar_por_musculo(musculo: str) -> list[Exercicio]:
         url = f"{ExercicioService.BASE_URL}/exercises/target/{musculo}"
 
-        response = requests.get(url, headers=ExercicioService.HEADERS)
+        response = requests.get(url, headers=ExercicioService.HEADERS, timeout=10)
 
         if response.status_code != 200:
             raise RuntimeError("Erro ao buscar exercícios na ExerciseDB")
