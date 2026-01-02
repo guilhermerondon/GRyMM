@@ -1,13 +1,24 @@
+import random
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.aluno.models import Aluno
 from apps.aluno.services import AlunoService, NivelAluno
+from apps.exercicios.models import Exercicio
 from apps.treino.models import Treino, TreinoExercicio
 
 
 class TreinoService:
+    # realiza montagem de requests para API externa
+    ESTRUTURA_MUSCULAR = {
+        "A": {"chest": 3, "biceps": 2},
+        "B": {"back": 3, "triceps": 2},
+        "C": {"legs": 5},
+        "D": {"shoulders": 3, "abs": 2},
+    }
+
     @staticmethod
     # realiza a estrutura de do treino atráves do Nivel recebido
     # caso seja iniciante e intermediário - ABC
@@ -16,6 +27,32 @@ class TreinoService:
         if nivel in (NivelAluno.INICIANTE, NivelAluno.INTERMEDIARO):
             return ["A", "B", "C"]
         return ["A", "B", "C", "D"]
+
+    @staticmethod
+    # realiza a busca de exercicios no banco
+    # faz a randomização dos exercicios
+    # garante que não venha a quantidade incorreta de exercicios
+    def _buscar_exercicios(
+        musculo: str,
+        nivel: NivelAluno,
+        quantidade: int,
+    ) -> list[Exercicio]:
+
+        exercicios = list(
+            Exercicio.objects.filter(
+                target=musculo,
+                difficulty__iexact=nivel.value,
+            )
+        )
+
+        random.shuffle(exercicios)
+        selecionados = exercicios[:quantidade]
+
+        if len(selecionados) < quantidade:
+            raise ValidationError(
+                _(f"Exercícios insuficientes para o musculo {musculo}")
+            )
+        return selecionados
 
     @staticmethod
     # realiza a criação do treino passando o ID do aluno
@@ -32,7 +69,7 @@ class TreinoService:
     # especifica campos obrigatórios - ID, REP e SERIES
     # lógica feita através do .keys que pega os campos e compara
     # se faltar é lançado um erro amigável
-    def _validar_exercicio_payload(exercicio: dict):
+    def _validar_exercicio_payload(exercicio: Exercicio):
         campos = {"id", "repeticoes", "series"}
         faltando = campos - exercicio.keys()
 
@@ -49,27 +86,21 @@ class TreinoService:
     # não duplica exercicios
     def adicionar_exercicio(
         treino: Treino,
-        exercicio_data: dict,
+        exercicio: Exercicio,
         dia: str,
+        ordem: int,
     ):
-        TreinoService._validar_exercicio_payload(exercicio_data)
 
         aluno = treino.aluno
 
-        AlunoService.validar_exercicio_para_aluno(
-            aluno=aluno,
-            exercicio_data=exercicio_data,
-        )
+        AlunoService.validar_exercicio_para_aluno(aluno=aluno, exercicio=exercicio)
         treino_exercicio, _ = TreinoExercicio.objects.update_or_create(
             treino=treino,
-            exercicio_id_externo=exercicio_data["id"],
-            # id que será usado com único para armazenar como exercicio externo
+            exercicio=exercicio,
             dia=dia,
             defaults={
-                # defaults - objetos que podem ser mudados após uma
-                # criação ou nova consulta
-                "repeticoes": exercicio_data["repeticoes"],
-                "series": exercicio_data["series"],
+                # defaults - objetos que podem ser mudados após uma request
+                "ordem": ordem,
             },
         )
 
@@ -77,17 +108,12 @@ class TreinoService:
 
     @staticmethod
     # realiza a montagem do treino
-    # define nível do aluno e estrutura de treino
-    # atomic - ou tudo passa ou nada é salvo
-    # valida se existe um treino ativo no momento
-    # garante que todos os dias obrigatórios existam
-    # busca os exercicios no payload
-    # valida a quantidade de 5 exercicios por dia
-    # faz a criação dos exercicios
-    def montar_treino(
-        aluno,
-        exercicios_por_dia: dict[str, list[dict]],
-    ):
+    # valida nível e dias validos de acordo com a estrutura
+    # valida se aluno possui treino ativo
+    # define 1 exercicio com base em cada dia na estrutura muscular
+    # para cada músculo na estrutura muscular é buscado um exercicio
+    # e cada exercicio retornado é salvo no treino
+    def montar_treino(aluno: Aluno) -> Treino:
         nivel = AlunoService.definir_level(aluno)
         dias_validos = TreinoService.estrutura_por_nivel(nivel)
 
@@ -95,18 +121,29 @@ class TreinoService:
             treino = TreinoService.criar_treino(aluno)
 
             for dia in dias_validos:
-                exercicios = exercicios_por_dia.get(dia)
-
-                if not exercicios or len(exercicios) != 5:
+                if dia not in TreinoService.ESTRUTURA_MUSCULAR:
                     raise ValidationError(
-                        _(f"O dia {dia} deve conter exatamente 5 exercícios")
+                        _(f"Estrutura muscular não definida para o dia {dia}")
                     )
 
-                for exercicio in exercicios:
-                    TreinoService.adicionar_exercicio(
-                        treino=treino,
-                        exercicio_data=exercicio,
-                        dia=dia,
+                ordem = 1
+                musculos = TreinoService.ESTRUTURA_MUSCULAR[dia]
+
+                for musculo, quantidade in musculos.items():
+
+                    exercicios = TreinoService._buscar_exercicios(
+                        musculo=musculo,
+                        nivel=nivel,
+                        quantidade=quantidade,
                     )
+
+                    for exercicio in exercicios:
+                        TreinoService.adicionar_exercicio(
+                            treino=treino,
+                            exercicio=exercicio,
+                            dia=dia,
+                            ordem=ordem,
+                        )
+                        ordem += 1
 
         return treino

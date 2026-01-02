@@ -40,32 +40,16 @@ class Treino(models.Model):
 
 class TreinoExercicio(models.Model):
 
-    # categorias/escolhas da API externa
-    CATEGORIAS_API = [
-        ("strength", "Strength"),
-        ("cardio", "Cardio"),
-        ("mobility", "Mobility"),
-        ("balance", "Balance"),
-        ("stretching", "Stretching"),
-        ("plyometrics", "Plyometrics"),
-        ("rehabilitation", "Rehabilitation"),
-    ]
-
     treino = models.ForeignKey(
         "treino.Treino",
         on_delete=models.CASCADE,
         related_name="exercicios",
     )
 
-    exercicio_id_externo = models.CharField(max_length=100)
-    nome_exercicio = models.CharField(max_length=255)
-    grupo_muscular = models.CharField(max_length=100)
-    repeticoes = models.CharField(max_length=100, default=0)
-    series = models.CharField(max_length=100, default=0)
-
-    categoria = models.CharField(
-        max_length=20,
-        choices=CATEGORIAS_API,
+    exercicio = models.ForeignKey(
+        "exercicios.Exercicio",
+        on_delete=models.CASCADE,
+        related_name="treinos",
     )
 
     dia = models.CharField(
@@ -73,18 +57,26 @@ class TreinoExercicio(models.Model):
         choices=[("A", "Dia A"), ("B", "Dia B"), ("C", "Dia C"), ("D", "Dia D")],
     )
 
+    ordem = models.PositiveSmallIntegerField(verbose_name=_("Ordem no treino"))
+
+    repeticoes = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    series = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["treino", "dia", "exercicio_id_externo"],
+                fields=["treino", "dia", "exercicio"],
                 name="unique_exercicio_por_dia_no_treino",
             )
         ]
-        indexes = [
-            models.Index(fields=["treino", "dia"]),
-            models.Index(fields=["categoria"]),
-            models.Index(fields=["grupo_muscular"]),
-        ]
+        ordering = ["dia", "ordem"]
 
     def __str__(self):
-        return f"{self.nome_exercicio} ({self.categoria}) - Dia {self.dia}"
+        return f"{self.treino} - {self.dia} - {self.exercicio}"

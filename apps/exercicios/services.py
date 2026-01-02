@@ -38,11 +38,12 @@ class ExercicioService:
 
         return exercicio_salvos
 
+    @staticmethod
+    # realiza a ação de alterar ou salvar exericio
+    # sempre mantém o id da API Externa como base
+    # impede duplicidade de exercicios
+    # defaults - serão os únicos dados que podem ser alterados
     def _salvar_ou_atualizar_exercicio(data: dict) -> Exercicio:
-        # realiza a ação de alterar ou salvar exericio
-        # sempre mantém o id da API Externa como base
-        # impede duplicidade de exercicios
-        # defaults - serão os únicos dados que podem ser alterados
         exercicio, _ = Exercicio.objects.update_or_create(
             external_id=data["id"],
             defaults={

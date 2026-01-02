@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.aluno.core.enum import NivelAluno
+
 
 class Exercicio(models.Model):
     # cria parâmetros do exercicio que será recebido da API exeterna
@@ -34,7 +36,10 @@ class Exercicio(models.Model):
 
     category = models.CharField(max_length=50, verbose_name=_("Categoria"))
 
-    difficulty = models.CharField(max_length=50, verbose_name=_("Dificuldade"))
+    difficulty = models.IntegerField(
+        choices=[(n.value, n.label) for n in NivelAluno],
+        verbose_name=_("Nível do Exercício"),
+    )
 
     instructions = models.JSONField(default=list, verbose_name=_("Instruções"))
 

@@ -19,11 +19,14 @@ class TreinoExercicioSerializer(serializers.ModelSerializer):
     class Meta:
         model = TreinoExercicio
         fields = [
-            "dia",
-            "exercicio_id_externo",
-            "nome_exercicio",
-            "grupo_muscular",
-            "categoria",
+            "name" "target" "secondary_muscles",
+            "body_part",
+            "equipment",
+            "category",
+            "difficulty",
+            "instructions",
+            "description",
+            "gif_url",
         ]
 
 
