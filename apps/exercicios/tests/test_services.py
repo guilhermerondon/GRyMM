@@ -2,6 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from apps.aluno.core.enum import NivelAluno
 from apps.exercicios.models import Exercicio
 from apps.exercicios.services import ExercicioService
 
@@ -24,7 +25,7 @@ def test_buscar_exercicios_por_musculo_cria_exercicio(mock_get):
             "secondaryMuscles": ["shoulders"],
             "instructions": ["instruction 1"],
             "description": "Exercise description",
-            "difficulty": "beginner",
+            "difficulty": NivelAluno.INICIANTE.value,
             "category": "strength",
             "gifUrl": "https://example.com/gif.gif",
         }
@@ -40,7 +41,7 @@ def test_buscar_exercicios_por_musculo_cria_exercicio(mock_get):
     exercicio = exercicios[0]
     assert exercicio.external_id == "0018"
     assert exercicio.target == "triceps"
-    assert exercicio.difficulty == "beginner"
+    assert exercicio.difficulty == NivelAluno.INICIANTE.value
 
 
 @pytest.mark.django_db
@@ -55,7 +56,7 @@ def test_buscar_exercicios_por_musculo_atualiza_exercicio(mock_get):
         external_id="0018",
         name="Old name",
         target="triceps",
-        difficulty="beginner",
+        difficulty=NivelAluno.INICIANTE.value,
         category="strength",
         body_part="upper arms",
         equipment="towel",
@@ -77,7 +78,7 @@ def test_buscar_exercicios_por_musculo_atualiza_exercicio(mock_get):
             "secondaryMuscles": ["shoulders"],
             "instructions": ["instruction 1"],
             "description": "Updated description",
-            "difficulty": "beginner",
+            "difficulty": NivelAluno.EXPERIENTE.value,
             "category": "strength",
             "gifUrl": "https://new.gif",
         }

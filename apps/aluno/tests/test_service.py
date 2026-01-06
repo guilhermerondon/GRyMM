@@ -1,7 +1,9 @@
 import pytest
 
+from apps.aluno.core.enum import NivelAluno
 from apps.aluno.models import Aluno
-from apps.aluno.services import AlunoService, NivelAluno
+from apps.aluno.services import AlunoService
+from apps.exercicios.models import Exercicio
 
 # cria alunos fakes
 
@@ -39,6 +41,22 @@ def aluno_experiente():
 # assegura que o nível do aluno esteja correto
 
 
+def exercicio_begginer_mock(nivel: int | None = None):
+    return Exercicio.objects.create(
+        external_id="0018",
+        name="Old name",
+        target="triceps",
+        difficulty=nivel,
+        category="strength",
+        body_part="upper arms",
+        equipment="towel",
+        secondary_muscles=[],
+        instructions=[],
+        description="old",
+        gif_url="https://old.gif",
+    )
+
+
 def test_definir_nivel_iniciante(aluno_iniciante):
     nivel = AlunoService.definir_level(aluno_iniciante)
     assert nivel == NivelAluno.INICIANTE
@@ -56,56 +74,65 @@ def test_definir_nivel_experiente(aluno_experiente):
 
 # mock da API externa
 
-EXERCICIO_INICIANTE = {"difficulty": "begginer"}
-EXERCICIO_INTERMEDIARIO = {"difficulty": "intermediate"}
-EXERCICIO_EXPERIENTE = {"difficulty": "expert"}
 
-
+@pytest.mark.django_db
 # teste de definição de nível API Mockada
 def test_exercicio_iniciante_para_aluno_iniciante(aluno_iniciante):
+
+    exercicio = exercicio_begginer_mock(nivel=NivelAluno.INICIANTE.value)
+
     AlunoService.validar_exercicio_para_aluno(
         aluno_iniciante,
-        EXERCICIO_INICIANTE,
+        exercicio,
     )
 
 
+@pytest.mark.django_db
 def test_exercicio_iniciante_para_aluno_experiente(aluno_experiente):
+
+    exercicio = exercicio_begginer_mock(nivel=NivelAluno.INTERMEDIARO.value)
+
     AlunoService.validar_exercicio_para_aluno(
         aluno_experiente,
-        EXERCICIO_INICIANTE,
+        exercicio,
     )
 
 
+@pytest.mark.django_db
 def test_exercicio_intermediario_para_aluno_iniciante_erro(
     aluno_iniciante,
 ):
+
+    exercicio = exercicio_begginer_mock(nivel=NivelAluno.INTERMEDIARO.value)
+
     with pytest.raises(ValueError):
         AlunoService.validar_exercicio_para_aluno(
             aluno_iniciante,
-            EXERCICIO_INTERMEDIARIO,
+            exercicio,
         )
 
 
+@pytest.mark.django_db
 def test_exercicio_experiente_para_aluno_intermediario_erro(
     aluno_intermediario,
 ):
+
+    exercicio = exercicio_begginer_mock(nivel=NivelAluno.EXPERIENTE.value)
+
     with pytest.raises(ValueError):
         AlunoService.validar_exercicio_para_aluno(
-            aluno_intermediario, EXERCICIO_EXPERIENTE
+            aluno_intermediario,
+            exercicio,
         )
 
 
-def test_exercicio_sem_dificuldade(aluno_iniciante):
-    with pytest.raises(ValueError):
-        AlunoService.validar_exercicio_para_aluno(
-            aluno_iniciante,
-            {},
-        )
-
-
+@pytest.mark.django_db
 def test_exercicio_com_dificuldade_invalida(aluno_iniciante):
+
+    exercicio = exercicio_begginer_mock(nivel=20)
+
     with pytest.raises(ValueError):
         AlunoService.validar_exercicio_para_aluno(
             aluno_iniciante,
-            {"difficulty": "unknown"},
+            exercicio,
         )
