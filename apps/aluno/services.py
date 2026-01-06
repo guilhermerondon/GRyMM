@@ -36,8 +36,6 @@ class AlunoService:
 
         # cria um for para validar cada dificultty passado pelo Exercicio
 
-        # pytest.set_trace()
-
         try:
             nivel_exercicio = NivelAluno(exercicio.difficulty)
         except (ValueError, TypeError):

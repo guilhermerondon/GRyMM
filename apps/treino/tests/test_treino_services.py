@@ -105,8 +105,6 @@ def criar_exercicios(
         )
 
 
-
-
 @pytest.mark.django_db
 def testar_montar_treino_iniciante_cria_treino_completo(aluno_iniciante):
 
