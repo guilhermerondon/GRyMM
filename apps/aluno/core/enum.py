@@ -22,7 +22,7 @@ class NivelAluno(IntEnum):
 
 
 API_DIFICULDADE_MAP = {
-    "begginer": NivelAluno.INICIANTE,
+    "beginner": NivelAluno.INICIANTE,
     "intermediate": NivelAluno.INTERMEDIARO,
     "expert": NivelAluno.EXPERIENTE,
 }  # mapeia dificuldade da API externa

@@ -1,10 +1,21 @@
 import requests
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
+from apps.aluno.core.enum import NivelAluno
 from apps.exercicios.models import Exercicio
 
 
 class ExercicioService:
+
+    # regra de MAP de API externa para definir level int
+
+    API_DIFICULDADE_MAP = {
+        "beginner": NivelAluno.INICIANTE,
+        "intermediate": NivelAluno.INTERMEDIARO,
+        "expert": NivelAluno.EXPERIENTE,
+    }
+
     # monta variáveis de base que serão feita as requisições a API externa
 
     BASE_URL = "https://exercisedb.p.rapidapi.com"
@@ -60,3 +71,49 @@ class ExercicioService:
             },
         )
         return exercicio
+
+    @staticmethod
+    # passa dificuldade como str
+    # valida se há o campo difficulty
+    # valida se o dado já está tratado no banco
+    # pega o que veio inserido no campo e passa a API MAP
+    # retorna NivelAluno de acordo com o que foi passado no MAP
+    def traduzir_dificuldade_api(difficulty: str) -> NivelAluno:
+        if not difficulty:
+            raise (ValueError)(_("Exercicio sem dificuldade"))
+
+        if isinstance(difficulty, int):
+            return NivelAluno(difficulty)
+
+        if not isinstance(difficulty, str):
+            raise ValueError(_(f"Dificuldade inválida: {difficulty}"))
+
+        nivel = ExercicioService.API_DIFICULDADE_MAP.get(difficulty.lower())
+
+        if nivel is None:
+            raise ValueError(_("Dificuldade inválida recebida da API Externa"))
+
+        return nivel
+
+    @staticmethod
+    def importar_exercicios(api_data: list):
+        exercicios = []
+
+        for i, item in enumerate(api_data):
+            nivel = ExercicioService.traduzir_dificuldade_api(item["difficulty"])
+
+            exercicio = Exercicio.objects.create(
+                external_id=item["id"],
+                name=item["name"],
+                target=item["target"],
+                difficulty=nivel.value,
+                category=item["category"],
+                body_part=item["bodyPart"],
+                equipment=item["equipment"],
+                instructions=item["instructions"],
+                gif_url=item["gifUrl"],
+            )
+
+            exercicios.append(exercicio)
+
+        return exercicios

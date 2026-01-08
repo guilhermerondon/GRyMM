@@ -106,6 +106,7 @@ def criar_exercicios(
 
 
 @pytest.mark.django_db
+# descontinuar após passar .montat via mock
 def testar_montar_treino_iniciante_cria_treino_completo(aluno_iniciante):
 
     aluno = aluno_iniciante
