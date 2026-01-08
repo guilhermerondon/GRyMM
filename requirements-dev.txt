@@ -4,3 +4,4 @@ isort
 bandit
 pre-commit
 python3.11
+requests-mock
