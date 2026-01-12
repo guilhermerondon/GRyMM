@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.aluno.models import Aluno
 from apps.aluno.services import AlunoService, NivelAluno
 from apps.exercicios.models import Exercicio
+from apps.exercicios.services import ExercicioService
 from apps.treino.models import Treino, TreinoExercicio
 
 
@@ -81,7 +82,7 @@ class TreinoService:
 
     @staticmethod
     # adiciona um exercicio em um treino
-    # garante que payload de exercicio seja válido
+    # traduz dificuldade da API para intEnum
     # valida se o exercicio é adequado ao aluno
     # não duplica exercicios
     def adicionar_exercicio(
@@ -93,7 +94,14 @@ class TreinoService:
 
         aluno = treino.aluno
 
-        AlunoService.validar_exercicio_para_aluno(aluno=aluno, exercicio=exercicio)
+        nivel_exercicio = ExercicioService.traduzir_dificuldade_api(
+            exercicio.difficulty
+        )
+
+        AlunoService.validar_exercicio_para_aluno(
+            aluno=aluno, exercicio=nivel_exercicio
+        )
+
         treino_exercicio, _ = TreinoExercicio.objects.update_or_create(
             treino=treino,
             exercicio=exercicio,

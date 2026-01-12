@@ -2,7 +2,6 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.aluno.core.enum import NivelAluno
 from apps.aluno.models import Aluno
-from apps.exercicios.models import Exercicio
 
 
 class AlunoService:
@@ -22,7 +21,7 @@ class AlunoService:
     @staticmethod
     def validar_exercicio_para_aluno(
         aluno: Aluno,
-        exercicio: Exercicio,
+        exercicio: NivelAluno,
     ) -> None:
         # valida se o aluno pode executar um exercicio
         # retornado pela API externa
@@ -30,14 +29,12 @@ class AlunoService:
         nivel_aluno = AlunoService.definir_level(aluno)
         # pega o nível do aluno
 
-        if exercicio.difficulty is None:
+        if exercicio is None:
             raise ValueError(_("Exercício sem informação de nível"))
             # garante integridade do domínio
 
-        # cria um for para validar cada dificultty passado pelo Exercicio
-
         try:
-            nivel_exercicio = NivelAluno(exercicio.difficulty)
+            nivel_exercicio = NivelAluno(exercicio).value
         except (ValueError, TypeError):
             raise ValueError(_("Nivel de exercicio inválido"))
 

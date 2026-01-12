@@ -1,10 +1,13 @@
 from unittest.mock import Mock, patch
 
 import pytest
+import requests_mock
 
 from apps.aluno.core.enum import NivelAluno
+from apps.aluno.models import Aluno
 from apps.exercicios.models import Exercicio
 from apps.exercicios.services import ExercicioService
+from apps.treino.services import TreinoService
 
 
 @pytest.mark.django_db
@@ -107,3 +110,63 @@ def test_buscar_exercicios_por_musculo_erro_api(mock_get):
 
     with pytest.raises(RuntimeError):
         ExercicioService.buscar_por_musculo("triceps")
+
+
+def gerar_exercicios_mock(
+    target: str,
+    quantidade: int,
+    difficulty: str = "beginner",
+):
+    return [
+        {
+            "id": f"{target}-{i}",
+            "name": f"Exercicio {target} {i}",
+            "target": target,
+            "difficulty": difficulty,
+            "category": "strength",
+            "bodyPart": "upper body",
+            "equipment": "body weight",
+            "instructions": ["Passo 1", "Passo 2"],
+            "gifUrl": "http://test.com/gif.gif",
+        }
+        for i in range(quantidade)
+    ]
+
+
+EXERCISEDB_RESPONSE = (
+    gerar_exercicios_mock("chest", 3)
+    + gerar_exercicios_mock("biceps", 2)
+    + gerar_exercicios_mock("back", 3)
+    + gerar_exercicios_mock("triceps", 2)
+    + gerar_exercicios_mock("legs", 5)
+)
+
+
+@pytest.fixture
+def aluno_iniciante(db):
+    return Aluno.objects.create(
+        nome="Aluno Miguel",
+        idade=21,
+        peso=70,
+        tempo_pratica_meses=1,
+    )
+
+
+@pytest.mark.django_db
+def test_fluxo_completo_exercisedb_para_treino(
+    aluno_iniciante,
+):
+    with requests_mock.Mocker() as m:
+        m.get(
+            "https://api.exercisedb.com/exercises",
+            json=EXERCISEDB_RESPONSE,
+        )
+
+        response = EXERCISEDB_RESPONSE
+
+        ExercicioService.importar_exercicios(response)
+
+        treino = TreinoService.montar_treino(aluno_iniciante)
+
+        assert treino is not None
+        assert treino.exercicios.count() == 15

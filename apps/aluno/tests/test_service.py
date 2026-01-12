@@ -83,18 +83,18 @@ def test_exercicio_iniciante_para_aluno_iniciante(aluno_iniciante):
 
     AlunoService.validar_exercicio_para_aluno(
         aluno_iniciante,
-        exercicio,
+        exercicio=NivelAluno(exercicio.difficulty),
     )
 
 
 @pytest.mark.django_db
 def test_exercicio_iniciante_para_aluno_experiente(aluno_experiente):
 
-    exercicio = exercicio_begginer_mock(nivel=NivelAluno.INTERMEDIARO.value)
+    exercicio = exercicio_begginer_mock(nivel=NivelAluno.INICIANTE.value)
 
     AlunoService.validar_exercicio_para_aluno(
         aluno_experiente,
-        exercicio,
+        exercicio=NivelAluno(exercicio.difficulty),
     )
 
 
