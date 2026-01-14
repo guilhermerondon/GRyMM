@@ -3,6 +3,7 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from apps.aluno.models import Aluno
+from apps.treino.services import TreinoService
 
 from .models import Treino
 from .serializers import TreinoCreateSerializer, TreinoSerializer
@@ -58,7 +59,7 @@ class TreinoViewSet(viewsets.ViewSet):
         )
 
         serializer.is_valid(raise_exception=True)
-        treino = serializer.save()
+        treino = TreinoService.montar_treino(aluno)
 
         return Response(
             {

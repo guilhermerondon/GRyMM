@@ -1,9 +1,13 @@
+import logging
+
 import requests
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from apps.aluno.core.enum import NivelAluno
 from apps.exercicios.models import Exercicio
+
+logger = logging.getLogger(__name__)
 
 
 class ExercicioService:
@@ -13,7 +17,42 @@ class ExercicioService:
     API_DIFICULDADE_MAP = {
         "beginner": NivelAluno.INICIANTE,
         "intermediate": NivelAluno.INTERMEDIARO,
-        "expert": NivelAluno.EXPERIENTE,
+        "advanced": NivelAluno.EXPERIENTE,
+    }
+
+    # regra de MAP com base o TargetList do ExerciseDb
+
+    API_TARGET_MAP = {
+        # domínio -> ExerciseDB
+        "chest": "pectorals",
+        "back": "upper back",
+        "legs": "quads",
+        "shoulders": "delts",
+        "abs": "abs",
+        "biceps": "biceps",
+        "triceps": "triceps",
+    }
+
+    API_TARGET_MAP_TRANSLATOR = {
+        # Peito
+        "pectorals": "chest",
+        # Costas
+        "upper back": "back",
+        "lats": "back",
+        "spine": "back",
+        # Ombros
+        "delts": "shoulders",
+        # Pernas
+        "quads": "legs",
+        "hamstrings": "legs",
+        "glutes": "legs",
+        "calves": "legs",
+        # Braços
+        "biceps": "biceps",
+        "triceps": "triceps",
+        "forearms": "forearms",
+        # Abdômen
+        "abs": "abs",
     }
 
     # monta variáveis de base que serão feita as requisições a API externa
@@ -27,17 +66,24 @@ class ExercicioService:
 
     @staticmethod
     # realiza a busca por musculos
+    # cria api_target responsável por mapear dados
+    # da API exeterna com estrtura por nível
     # faz um request a API externa - endpoint de listar por músuculos
     # retorna uma mensagem amigável caso dê erro
     # valida se nenhum dos exercicios já são existentes no DB
     # usa o append para adicionar o exercicio e retornar
     def buscar_por_musculo(musculo: str) -> list[Exercicio]:
-        url = f"{ExercicioService.BASE_URL}/exercises/target/{musculo}"
+
+        api_target = ExercicioService.API_TARGET_MAP.get(musculo)
+
+        url = f"{ExercicioService.BASE_URL}/exercises/target/{api_target}"
 
         response = requests.get(url, headers=ExercicioService.HEADERS, timeout=10)
 
         if response.status_code != 200:
-            raise RuntimeError("Erro ao buscar exercícios na ExerciseDB")
+            raise RuntimeError(
+                f"Erro ao buscar exercícios na ExerciseDB ({response.status_code})"
+            )
 
         exercicios_api = response.json()
 
@@ -55,16 +101,28 @@ class ExercicioService:
     # impede duplicidade de exercicios
     # defaults - serão os únicos dados que podem ser alterados
     def _salvar_ou_atualizar_exercicio(data: dict) -> Exercicio:
+
+        logger.warning(
+            "Exercise API payload | id=%s | target=%s | keys=%s",
+            data.get("id"),
+            data.get("target"),
+            list(data.keys()),
+        )
+
+        target_traduzido = ExercicioService.traduzir_target_api(data.get("target"))
+
+        nivel = ExercicioService.traduzir_dificuldade_api(data.get("difficulty"))
+
         exercicio, _ = Exercicio.objects.update_or_create(
             external_id=data["id"],
             defaults={
                 "name": data["name"],
-                "target": data["target"],
+                "target": target_traduzido,
                 "secondary_muscles": data.get("secondaryMuscles", []),
                 "body_part": data.get("bodyPart"),
                 "equipment": data.get("equipment"),
                 "category": data.get("category"),
-                "difficulty": data.get("difficulty"),
+                "difficulty": nivel.value,
                 "instructions": data.get("instructions", []),
                 "description": data.get("description", ""),
                 "gif_url": data.get("gifUrl", ""),
@@ -91,9 +149,27 @@ class ExercicioService:
         nivel = ExercicioService.API_DIFICULDADE_MAP.get(difficulty.lower())
 
         if nivel is None:
-            raise ValueError(_("Dificuldade inválida recebida da API Externa"))
+            raise ValueError(
+                _(f"Dificuldade inválida recebida da API Externa: {nivel}")
+            )
 
         return nivel
+
+    @staticmethod
+    # traduz target que vem da API externa para
+    # passar na função de montar treino
+    def traduzir_target_api(target: str) -> str:
+
+        target_normalizado = target.lower().strip()
+
+        traducao = ExercicioService.API_TARGET_MAP_TRANSLATOR.get(target_normalizado)
+
+        if traducao is None:
+            raise ValueError(
+                f"Target inválido recebido da API externa {target_normalizado}"
+            )
+
+        return traducao
 
     @staticmethod
     def importar_exercicios(api_data: list):

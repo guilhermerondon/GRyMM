@@ -31,6 +31,7 @@ class TreinoService:
 
     @staticmethod
     # realiza a busca de exercicios no banco
+    # faz fallback caso os exercicios sejam insuficientes
     # faz a randomização dos exercicios
     # garante que não venha a quantidade incorreta de exercicios
     def _buscar_exercicios(
@@ -42,9 +43,19 @@ class TreinoService:
         exercicios = list(
             Exercicio.objects.filter(
                 target=musculo,
-                difficulty__iexact=nivel.value,
-            )
+                difficulty__lte=nivel.value,
+            )[:quantidade]
         )
+
+        if len(exercicios) < quantidade:
+            ExercicioService.buscar_por_musculo(musculo)
+
+            exercicios = list(
+                Exercicio.objects.filter(
+                    target=musculo,
+                    difficulty__lte=nivel.value,
+                )[:quantidade]
+            )
 
         random.shuffle(exercicios)
         selecionados = exercicios[:quantidade]
