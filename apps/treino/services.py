@@ -115,7 +115,7 @@ class TreinoService:
 
         treino_exercicio, _ = TreinoExercicio.objects.update_or_create(
             treino=treino,
-            exercicio=exercicio,
+            exercicio_id=exercicio,
             dia=dia,
             defaults={
                 # defaults - objetos que podem ser mudados após uma request
