@@ -46,7 +46,7 @@ class TreinoExercicio(models.Model):
         related_name="exercicios",
     )
 
-    exercicio = models.ForeignKey(
+    exercicio_id = models.ForeignKey(
         "exercicios.Exercicio",
         on_delete=models.CASCADE,
         related_name="treinos",
@@ -72,11 +72,11 @@ class TreinoExercicio(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["treino", "dia", "exercicio"],
+                fields=["treino", "dia", "exercicio_id"],
                 name="unique_exercicio_por_dia_no_treino",
             )
         ]
         ordering = ["dia", "ordem"]
 
     def __str__(self):
-        return f"{self.treino} - {self.dia} - {self.exercicio}"
+        return f"{self.treino} - {self.dia} - {self.exercicio_id}"
