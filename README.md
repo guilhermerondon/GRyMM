@@ -138,3 +138,73 @@ Atualiza **apenas os campos informados** no payload.
 Remove o aluno do sistema.
 
 **Resposta esperada:**
+
+---
+
+## 🌐 Rotas de Treino
+
+
+## ➕ Criar Treino para um Aluno
+
+### 📍 Base URL
+**POST** `/api/alunos/{id_aluno}/treinos/`
+
+### Payload de exemplo
+```json
+{
+  "aluno": 1,
+  "nivel": "INICIANTE",
+  "ativo": true
+}
+
+```
+
+---
+
+## 📄 Listar Treinos do Aluno
+
+### 📍 Base URL
+
+**GET** `/api/alunos/{id_aluno}/treinos/`
+
+
+### Payload de exemplo
+```json
+{
+  "message": "Treinos listados com sucesso",
+  "data": [
+    {
+      "id": 2,
+      "nivel": "",
+      "ativo": true,
+      "criado_em": "2026-01-19T02:58:38.180288Z",
+      "exercicios": [
+        {
+          "treino": 2,
+          "exercicio_id": 1,
+          "dia": "A",
+          "ordem": 1,
+          "repeticoes": null,
+          "series": null,
+          "exercicio": {
+            "external_id": "0009",
+            "name": "assisted chest dip (kneeling)",
+            "target": "chest",
+            "difficulty": 1,
+            "category": "strength",
+            "body_part": "chest",
+            "equipment": "leverage machine",
+            "instructions": [
+              "Adjust the machine to your desired height and secure your knees on the pad.",
+              "Grasp the handles with your palms facing down and your arms fully extended.",
+              "Lower your body by bending your elbows until your upper arms are parallel to the floor.",
+              "Pause for a moment, then push yourself back up to the starting position."
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+
+```
