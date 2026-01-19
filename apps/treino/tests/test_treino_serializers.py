@@ -43,7 +43,7 @@ def test_exercicio_serializer_valido():
 
     payload = {
         "treino": 1,
-        "exercicio": 1,
+        "exercicio_id": 1,
         "dia": "A",
         "ordem": 1,
         "repeticoes": 10,
@@ -75,4 +75,4 @@ def test_serializer_invalido_nome_exercicio():
     serializer = TreinoExercicioSerializer(data=payload)
 
     assert serializer.is_valid() is False
-    assert "exercicio" in serializer.errors
+    assert "exercicio_id" in serializer.errors

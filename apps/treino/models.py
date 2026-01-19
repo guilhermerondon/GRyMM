@@ -46,13 +46,11 @@ class TreinoExercicio(models.Model):
         related_name="exercicios",
     )
 
-
     exercicio_id = models.ForeignKey(
         "exercicios.Exercicio",
         on_delete=models.CASCADE,
         related_name="treinos",
     )
-
 
     dia = models.CharField(
         max_length=1,

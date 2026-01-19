@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from .models import Treino, TreinoExercicio
-from apps.exercicios.services import ExercicioService
 
 
 class TreinoCreateSerializer(serializers.ModelSerializer):
@@ -31,15 +30,15 @@ class TreinoExercicioSerializer(serializers.ModelSerializer):
             "series",
             "exercicio",
         ]
-    
+
     def get_exercicio(self, obj):
 
         exercicio_data = obj.exercicio_id
-        
+
         if not exercicio_data:
             return None
-        
-        return{
+
+        return {
             "external_id": exercicio_data.external_id,
             "name": exercicio_data.name,
             "target": exercicio_data.target,
